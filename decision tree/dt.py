@@ -87,6 +87,11 @@ class DecisionTree(object):
 		return information_gain
 
 	def __chose_best_feature_to_split(self, data_set):
+		"""
+		选择划分时最佳特征对应的维度
+		:param data_set:
+		:return:
+		"""
 		num_feature = len(data_set[0]) - 1  # 最后一列是分类
 		base_entropy = self.__calculate_shannon_entropy(data_set)
 		best_information_gain = 0.0
@@ -189,6 +194,25 @@ class DecisionTree(object):
 			for item in unique_feature_i_values:
 				if feature_i_values.count(item) > mode_num:
 					mode = item  # 众数
+			# 使用条件熵判断使用哪个阈值
+			# new_data_set = data_set[:]
+			# min_conditional_entropy = 10000
+			# best_alpha = average
+			# alphas = [average, median, mode]
+			# print alphas
+			# for item in alphas:
+			# 	for j in range(entries_nums):  # 尝试使用item作为离散化阈值
+			# 		if float(data_set[j][i]) < item:
+			# 			new_data_set[j][i] = 0
+			# 		else:
+			# 			new_data_set[j][i] = 1
+			# 	unique_feature_values = [0, 1]
+			# 	conditional_entropy = self.__calculate_conditional_entropy(new_data_set, i, unique_feature_values)  # 计算条件熵
+			# 	if conditional_entropy < min_conditional_entropy:
+			# 		min_conditional_entropy = conditional_entropy
+			# 		best_alpha = item
+			# alpha_list.append(best_alpha)
+			# print best_alpha
 			alpha_list.append([average, median, mode])
 		self.alpha_list = alpha_list
 
