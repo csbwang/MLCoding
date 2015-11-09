@@ -89,8 +89,8 @@ class DecisionTree(object):
 	def __chose_best_feature_to_split(self, data_set):
 		num_feature = len(data_set[0]) - 1  # 最后一列是分类
 		base_entropy = self.__calculate_shannon_entropy(data_set)
-		best_information_gain = -1
-		# best_feature_dimension = 0 #--------------------------------------------
+		best_information_gain = 0.0
+		best_feature_dimension = -1
 		for i in range(num_feature):  # 遍历所有维度特征
 			information_gain = self.__calculate_information_gain(data_set, base_entropy, i)
 			if information_gain > best_information_gain:
