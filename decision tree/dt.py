@@ -4,23 +4,22 @@ __author__ = 'phenix'
 
 import math
 import operator
+import copy
 
 
 class DecisionTree(object):
 	"""
 	决策树分类算法
 	"""
-	def __init__(self, features=[], discretization=False, alpha_type=0):
+	def __init__(self, features=[], discretization=False):
 		"""
 		初始默认为离散属性
 		:param features:属性标签列表，默认为空，训练时生成
 		:param discretization: 是否需要离散化属性, 默认不需要
-		:param alpha_type: 离散属性时选取的阈值类型，0为平均数，1为中位数，2为众数，默认为 0
 		:return:
 		"""
 		self.features = features
 		self.discretization = discretization
-		self.alpha_type = alpha_type
 
 	def __calculate_shannon_entropy(self, data_set):
 		"""
@@ -169,7 +168,7 @@ class DecisionTree(object):
 		"""
 		for i in range(len(data_set)):
 			for j in range(len(self.alpha_list)):
-				if float(data_set[i][j]) < self.alpha_list[j][self.alpha_type]:
+				if float(data_set[i][j]) <= self.alpha_list[j]:
 					data_set[i][j] = 0
 				else:
 					data_set[i][j] = 1
@@ -184,36 +183,23 @@ class DecisionTree(object):
 		dimension = len(data_set[0]) - 1
 		alpha_list = []  # 离散化时每个特征的的阈值
 		for i in range(dimension):
-			feature_i_values = [float(data_set[j][i]) for j in range(entries_nums)]
-			feature_i_values.sort()
-			average = sum(feature_i_values) / (entries_nums * 1.0)  # 平均数
-			median = feature_i_values[entries_nums / 2]  # 中位数
-			mode_num = 0
-			mode = feature_i_values[0]
-			unique_feature_i_values = set(feature_i_values)
-			for item in unique_feature_i_values:
-				if feature_i_values.count(item) > mode_num:
-					mode = item  # 众数
-			# 使用条件熵判断使用哪个阈值
-			# new_data_set = data_set[:]
-			# min_conditional_entropy = 10000
-			# best_alpha = average
-			# alphas = [average, median, mode]
-			# print alphas
-			# for item in alphas:
-			# 	for j in range(entries_nums):  # 尝试使用item作为离散化阈值
-			# 		if float(data_set[j][i]) < item:
-			# 			new_data_set[j][i] = 0
-			# 		else:
-			# 			new_data_set[j][i] = 1
-			# 	unique_feature_values = [0, 1]
-			# 	conditional_entropy = self.__calculate_conditional_entropy(new_data_set, i, unique_feature_values)  # 计算条件熵
-			# 	if conditional_entropy < min_conditional_entropy:
-			# 		min_conditional_entropy = conditional_entropy
-			# 		best_alpha = item
-			# alpha_list.append(best_alpha)
-			# print best_alpha
-			alpha_list.append([average, median, mode])
+			unique_feature_i_values = set([float(data_set[j][i]) for j in range(entries_nums)])
+			new_data_set = copy.deepcopy(data_set)  # 复制，分片的方法不适合多维
+			min_conditional_entropy = 10000
+			best_alpha = -1
+			alphas = [value for value in unique_feature_i_values]
+			for item in alphas:
+				for j in range(entries_nums):  # 尝试使用item作为离散化阈值
+					if float(data_set[j][i]) <= item:
+						new_data_set[j][i] = 0
+					else:
+						new_data_set[j][i] = 1
+				unique_feature_values = [0, 1]
+				conditional_entropy = self.__calculate_conditional_entropy(new_data_set, i, unique_feature_values)  # 计算条件熵
+				if conditional_entropy < min_conditional_entropy:
+					min_conditional_entropy = conditional_entropy
+					best_alpha = item
+			alpha_list.append(best_alpha)
 		self.alpha_list = alpha_list
 
 	def fit(self, train_data_set):
@@ -269,7 +255,7 @@ def load_data(train_file_path, test_file_path):
 
 def main(train_file_path, test_file_path):
 	features = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width']
-	clf = DecisionTree(features, True, 1)  # 初始化决策树模型实例
+	clf = DecisionTree(features, True)  # 初始化决策树模型实例
 	train_data_set, test_data_set, true_class_label_list = load_data(train_file_path, test_file_path)  # 初始化数据集
 	clf.fit(train_data_set)  # 训练决策树模型
 	print clf.decision_tree  # 输出决策树
